@@ -10,15 +10,25 @@ import {
   CardTitle
 } from "@/components/ui/card"
 import { Category, Product } from "@/types"
-import { useQuery } from "@tanstack/react-query"
-//import { useContext } from "react"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { Link } from "react-router-dom"
+
+import { ChangeEvent, useContext, useState } from "react"
+import { NavBar } from "@/components/navbar"
+import { Hero } from "@/components/hero"
+import { Footer } from "@/components/footer"
+import { WhyUs } from "./whyUs"
 
 export function Home() {
-  // const { state, handleAddToCart } = useContext(GloblContext)
+  const queryClient = useQueryClient()
+  const [searchBy, setSearchBy] = useState("")
+  const context = useContext(GloblContext)
+  if (!context) throw Error("CONTEXT IS MISSING")
+  const { handleAddToCart } = context
 
   const getProducts = async () => {
     try {
-      const res = await api.get("/products")
+      const res = await api.get(`/products?searchBy=${searchBy}`)
       return res.data
     } catch (error) {
       console.error(error)
@@ -47,43 +57,39 @@ export function Home() {
     queryFn: getCategories
   })
 
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { value } = e.target
+    setSearchBy(value)
+  }
+  const handleSearch = (e) => {
+    e.preventDefault()
+    queryClient.invalidateQueries({ queryKey: ["products"] })
+  }
   return (
     <>
-      <h1 className="text-2xl uppercase mb-10">categories</h1>
-      <section className="flex flex-col md:flex-row gap-4 justify-between max-w-6xl mx-auto">
-        {categories?.map((product) => (
-          <Card key={product.id} className="w-[350px]">
-            <CardHeader>
-              <CardTitle>{product.name}</CardTitle>
-              {/* <CardDescription>{product.des}</CardDescription> */}
-            </CardHeader>
-            <CardContent></CardContent>
-            <CardFooter>
-              <Button variant="outline" className="w-full">
-                go to
-              </Button>
-            </CardFooter>
-          </Card>
-        ))}
-      </section>
-      <h1 className="text-2xl uppercase mb-10">Product</h1>
+      <NavBar />
+      <Hero />
       <section className="flex flex-wrap flex-col mt-20 md:flex-row gap-4 justify-between max-w-6xl mx-auto">
         {products?.map((product) => (
           <Card key={product.id} className="w-[350px]">
             <CardHeader>
+              <img src={product.image} />
               <CardTitle>{product.name}</CardTitle>
               <CardDescription>{product.description}</CardDescription>
             </CardHeader>
             <CardContent></CardContent>
-            <CardFooter>
-              <Button variant="outline" className="w-full">
-                Add to cart
+            <CardFooter className="flex justify-between">
+              <Button variant="outline">
+                <Link to={`/products/${product.id}`}>Details</Link>
               </Button>
+              <Button onClick={() => handleAddToCart(product)}>Add to cart</Button>
             </CardFooter>
           </Card>
         ))}
       </section>
       {error && <p className="text-red-500">{error.message}</p>}
+      <WhyUs/>
+      <Footer />
     </>
   )
 }

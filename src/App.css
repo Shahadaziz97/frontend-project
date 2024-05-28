@@ -1,7 +1,8 @@
 #root {
+  background-color: #F0EBE3;
   max-width: 1880px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 0.2rem;
   text-align: center;
 }
 
@@ -38,5 +39,18 @@
 }
 
 .read-the-docs {
-  color: #888;
+  color: #ffffff;
+}
+.title-text{
+  color:#C39898;
+  font-size: 6rem; /* 96px */
+line-height: 1;
+  font-family:'Times New Roman', Times, serif;
+
+}
+.header-text{
+  color:#88AB8E;
+  font-size:20px;
+  line-height: 1.5rem; /* 24px */
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 }

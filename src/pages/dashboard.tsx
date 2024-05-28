@@ -1,11 +1,12 @@
 // import "./App.css"
 import api from "@/api"
+
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
-import { ChangeEvent, useState } from "react"
+import { ChangeEvent, FormEvent, useState } from "react"
 import CategoryService from "../api/category"
-import { Category, Product } from "@/types"
+import { Category, Product, ProductWithoutId } from "@/types"
 
 import {
   Table,
@@ -16,6 +17,9 @@ import {
   TableHeader,
   TableRow
 } from "@/components/ui/table"
+import { NavBar } from "@/components/navbar"
+import { User } from "@/types"
+import category from "../api/category"
 
 export function Dashboard() {
   const queryClient = useQueryClient()
@@ -23,12 +27,29 @@ export function Dashboard() {
   const [product, setProduct] = useState({
     categoryId: "",
     name: "",
-    Description: ""
+    image: "",
+    description: ""
   })
+
   const getProducts = async () => {
     try {
       const res = await api.get("/products")
       console.log("res ", res)
+      return res.data
+    } catch (error) {
+      console.error(error)
+      return Promise.reject(new Error("Something went wrong"))
+    }
+  }
+
+  const getUsers = async () => {
+    try {
+      const token = localStorage.getItem("token")
+      const res = await api.get("/users", {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
       return res.data
     } catch (error) {
       console.error(error)
@@ -46,6 +67,11 @@ export function Dashboard() {
     queryFn: CategoryService.getAll
   })
 
+  const { data: users, error: userError } = useQuery<User[]>({
+    queryKey: ["users"],
+    queryFn: getUsers
+  })
+
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     console.log("{ name , value }:", { name, value })
@@ -54,19 +80,16 @@ export function Dashboard() {
       [name]: value
     })
   }
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    await postProduct()
-    queryClient.invalidateQueries({ queryKey: ["products"] })
-  }
 
   const handleSelect = (e) => {
     setProduct({
       ...product,
       categoryId: e.target.value
     })
+    console.log("vsdcsdv", product)
   }
-  const postProduct = async () => {
+
+  const postProduct = async (product: ProductWithoutId) => {
     try {
       console.log("IS RUNNING")
 
@@ -78,14 +101,32 @@ export function Dashboard() {
     }
   }
 
-  console.log("products ", products)
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault()
+    await postProduct(product)
+    queryClient.invalidateQueries({ queryKey: ["products"] })
+  }
 
+  console.log("product object values ", product)
+
+  const productWithCat = products?.map((product) => {
+    const category = categories?.find((cat) => cat.id === product.categoryId)
+    if (category) {
+      return {
+        ...product,
+        categoryId: category.name
+      }
+    }
+    return product
+  })
   return (
     <>
+      <NavBar />
       <form className="mt-20 w-1/2 mx-auto" onSubmit={handleSubmit}>
         <h3 className="scroll-m-20 text-2xl font-semibold tracking-tight">Add New Product</h3>
 
-        <select onChange={handleSelect} name="categoryId">
+        <select name="categoryId" onChange={handleSelect}>
+          <option selected>Select a choice</option>
           {categories?.map((cat) => {
             return (
               <option key={cat.id} value={cat.id}>
@@ -102,10 +143,17 @@ export function Dashboard() {
           onChange={handleChange}
         />
         <Input
-          name="Description"
+          name="image"
           className="mt-4"
           type="text"
-          placeholder="Description"
+          placeholder="image"
+          onChange={handleChange}
+        />
+        <Input
+          name="description"
+          className="mt-4"
+          type="text"
+          placeholder="description"
           onChange={handleChange}
         />
 
@@ -113,7 +161,7 @@ export function Dashboard() {
           <Button variant="outline" type="reset" className="w-20 mt-4 ">
             Reset
           </Button>
-          <Button type="submit" className="w-20 mt-4 ">
+          <Button className="w-20 mt-4 " type="submit">
             Submit
           </Button>
         </div>
@@ -127,14 +175,19 @@ export function Dashboard() {
               <TableHead></TableHead>
               <TableHead>Name</TableHead>
               <TableHead>CategoryId</TableHead>
+              <TableHead>Img</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {products?.map((product) => (
+            {productWithCat?.map((product) => (
               <TableRow key={product.id}>
                 <TableCell></TableCell>
                 <TableCell className="text-left">{product.name}</TableCell>
                 <TableCell className="text-left">{product.categoryId}</TableCell>
+                <TableCell className="text-left">
+                  {" "}
+                  <img className="w-16" src={product.image}></img>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
