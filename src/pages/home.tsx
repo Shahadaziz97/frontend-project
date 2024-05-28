@@ -17,7 +17,6 @@ import { ChangeEvent, useContext, useState } from "react"
 import { NavBar } from "@/components/navbar"
 import { Hero } from "@/components/hero"
 import { Footer } from "@/components/footer"
-import { WhyUs } from "./whyUs"
 
 export function Home() {
   const queryClient = useQueryClient()
@@ -65,6 +64,7 @@ export function Home() {
     e.preventDefault()
     queryClient.invalidateQueries({ queryKey: ["products"] })
   }
+  console.log("products ", products)
   return (
     <>
       <NavBar />
@@ -88,7 +88,6 @@ export function Home() {
         ))}
       </section>
       {error && <p className="text-red-500">{error.message}</p>}
-      <WhyUs/>
       <Footer />
     </>
   )

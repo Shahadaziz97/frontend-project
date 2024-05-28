@@ -3,7 +3,7 @@ import { Link } from "react-router-dom"
 
 export function Footer() {
   return (
-    <footer className="bg-[#F6F5F2] mt-5 mb-1 p-6">
+    <footer className="bg-[#F6F5F2] mt-8 mb-1 p-6">
       <div className="container max-w-7xl flex flex-col items-center justify-between gap-6 sm:flex-row">
         <p className="text-sm ">© Copyright 2024 .</p>
 
